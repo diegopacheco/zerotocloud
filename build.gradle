@@ -1,75 +1,61 @@
-buildscript {
-    repositories { jcenter() }
 
-    dependencies {
-        classpath 'com.netflix.nebula:gradle-ospackage-plugin:1.12.+'
-        classpath 'com.google.guava:guava:17.0'
-        classpath 'com.netflix.nebula:gradle-info-plugin:1.12.+'
-        classpath 'com.netflix.nebula:nebula-core:1.12.+' // For Download
-        classpath 'de.undercouch:gradle-download-task:1.0'
-    }
+import zerotocloud.*
+task cloneRepo(type: CloneRepo) {
+    repository = 'https://github.com/Netflix/karyon.git'
 }
 
-import nebula.plugin.info.reporting.*
-subprojects {
+task patchRepo {
+    dependsOn 'cloneRepo'
+    doFirst {
+        def app = new File(cloneRepo.gitDir, 'karyon2-examples/src/main/java/netflix/karyon/examples/hellonoss/server/jersey/JerseyHelloWorldApp.java')
+        def contents = app.text
+        app.withWriter { out ->
+            out << contents
+                    .replace('//, KaryonEurekaModule.class', ', KaryonEurekaModule.class')
+                    // It's impossible to test REST calls from a browser if a HTTP Header is required.
+                    .replace('interceptorSupport.forUri("/hello").interceptIn(AuthInterceptor.class);', '//interceptorSupport.forUri("/hello").interceptIn(AuthInterceptor.class);')
+        }
 
-    apply plugin: 'info'
-    apply plugin: 'os-package'
-
-    // Ensure at least one file is included in package, always
-    tasks.withType(InfoPropertiesFile) { propTask ->
-        ospackage {
-            from(propTask) {
-                into('/etc')
-            }
+        def scanning = new File(cloneRepo.gitDir, 'karyon2-examples/src/main/resources/hello-netflix-oss.properties')
+        def scanContents = scanning.text
+        scanning.withWriter { out ->
+            // Let jersey scan Eureka package for healthcheck
+            out << scanContents.replace('com.netflix.hellonoss', 'com.netflix.hellonoss,com.netflix.appinfo')
         }
     }
 }
 
-def region = project.hasProperty('region') ? property.region : 'us-west-2'
-def home = new File(System.getenv('HOME'))
+task patchEndpoint {
+    dependsOn 'cloneRepo'
+    doFirst {
+        def app = new File(cloneRepo.gitDir, 'karyon-examples/hello-netflix-oss/src/main/java/com/netflix/hellonoss/server/HelloworldResource.java')
+        def contents = app.text
+        app.withWriter { out ->
+            out << contents
+                    .replace('Hello Netflix OSS component!', 'Hello Zero To Cloud developer!')
+        }
 
-task writeConfig << {
-    def csvFile = new File(home, 'credentials.csv')
-    def line = csvFile.text.split('\n')[1]
-    def parts = line.split(',')
-
-    def cfgFile = new File(home, '.boto')
-    cfgFile.withWriter { out ->
-        out << """
-            [Credentials]
-            aws_access_key_id = ${parts[1]}
-            aws_secret_access_key = ${parts[2]}
-            """.stripIndent()
     }
-
-    def awsFile = new File(home, '.aws')
-    awsFile.mkdir()
-
-    def configFile = new File(awsFile, 'config')
-    configFile.withWriter { out ->
-        out << """
-            [default]
-            aws_access_key_id = ${parts[1]}
-            aws_secret_access_key = ${parts[2]}
-            region = us-west-2
-            """.stripIndent()
-    }
-
-    def asgardHome = new File(home, '.asgard')
-    asgardHome.mkdir()
-
-    def asgardConfig = new File(asgardHome, 'Config.groovy')
-    def accountNumber = System.getenv('EC2_OWNER_ID')
-
-    asgardConfig.withWriter { out ->
-        out << project('asgard').file('root/usr/share/tomcat7/.asgard/Config.groovy').text.replace("@ACCOUNT_NUMBER@", accountNumber)
-        out << """
-            secret {
-                    accessId="${parts[1]}"
-                    secretKey="${parts[2]}"
-            }
-            """.stripIndent()
-    }
-
 }
+
+task buildRepo(type: Build) {
+    dependsOn 'cloneRepo', 'patchRepo'
+    mustRunAfter 'patchEndpoint'
+    moduleDir = cloneRepo.gitDir
+    arguments = [':karyon-examples:hello-netflix-oss:distZip', '-x', 'check', '-x', 'signArchives', '-x', 'sourcesJar', '-x', 'javadocJar', '--stacktrace']
+}
+
+import org.apache.tools.ant.filters.*
+ospackage {
+    def dist = new File(buildRepo.moduleDir, 'karyon-examples/hello-netflix-oss/build/distributions/hello-netflix-oss-2.1.00-RC3.zip')
+    from( zipTree(dist) ) {
+        into('/opt')
+    }
+    from(file('root')) {
+        into('/')
+        filter ReplaceTokens, tokens: [ 'KARYON_OPTS': System.getenv('KARYON_OPTS') ?: '' ]
+    }
+    postInstall('mv /opt/hello-netflix-oss* /opt/hello-netflix-oss') // zip was nested
+    postInstall('echo manual > /etc/init/tomcat7.override')
+}
+buildDeb.dependsOn(buildRepo)
