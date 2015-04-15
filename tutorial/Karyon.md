@@ -26,6 +26,15 @@ Make sure to use that DNS name below instead of just copying like you have in pr
     KARYON_OPTS="-Deureka.serviceUrl.default=http://$EUREKA_ELB/v2/" ./gradlew :karyon:buildDeb
     sudo aminate -e ec2_aptitude_linux -b ubuntu-base-ami-ebs karyon/build/distributions/karyon_1.0.0_all.deb
 
+## IF the build fails
+
+$ cd zerotocloud
+$ vim karyon/build/karyon-git/karyon2-examples/src/main/java/netflix/karyon/examples/hellonoss/server/jersey/JerseyHelloWorldApp.java
+add the following import: import netflix.karyon.eureka.KaryonEurekaModule;
+save the file
+run again
+$ KARYON_OPTS="-Deureka.serviceUrl.default=http://$EUREKA_ELB/v2/" ./gradlew :karyon:buildDeb
+
 ## Deploy
 
 Since Karyon is meant to be a middle-tier service, there's no need for a load balancer but it will still live in an ASG.
