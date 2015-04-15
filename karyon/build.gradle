@@ -7,7 +7,7 @@ task cloneRepo(type: CloneRepo) {
 task patchRepo {
     dependsOn 'cloneRepo'
     doFirst {
-        def app = new File(cloneRepo.gitDir, 'karyon-examples/hello-netflix-oss/src/main/java/com/netflix/hellonoss/server/HelloWorldApp.java')
+        def app = new File(cloneRepo.gitDir, 'karyon2-examples/src/main/java/netflix/karyon/examples/hellonoss/server/jersey/JerseyHelloWorldApp.java')
         def contents = app.text
         app.withWriter { out ->
             out << contents
@@ -16,7 +16,7 @@ task patchRepo {
                     .replace('interceptorSupport.forUri("/hello").interceptIn(AuthInterceptor.class);', '//interceptorSupport.forUri("/hello").interceptIn(AuthInterceptor.class);')
         }
 
-        def scanning = new File(cloneRepo.gitDir, 'karyon-examples/hello-netflix-oss/src/main/resources/hello-netflix-oss.properties')
+        def scanning = new File(cloneRepo.gitDir, 'karyon2-examples/src/main/resources/hello-netflix-oss.properties')
         def scanContents = scanning.text
         scanning.withWriter { out ->
             // Let jersey scan Eureka package for healthcheck
@@ -42,7 +42,7 @@ task buildRepo(type: Build) {
     dependsOn 'cloneRepo', 'patchRepo'
     mustRunAfter 'patchEndpoint'
     moduleDir = cloneRepo.gitDir
-    arguments = [':karyon-examples:hello-netflix-oss:distZip', '-x', 'check', '-x', 'signArchives', '-x', 'sourcesJar', '-x', 'javadocJar', '--stacktrace']
+    arguments = [':karyon-examples:distZip', '-x', 'check', '-x', 'signArchives', '-x', 'sourcesJar', '-x','javadocJar', '--stacktrace']
 }
 
 import org.apache.tools.ant.filters.*
