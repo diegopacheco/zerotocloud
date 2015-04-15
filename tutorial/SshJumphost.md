@@ -10,6 +10,8 @@ The commands we're using locally are _ssh_ and _scp_, which will be available on
 <a href="http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/putty.html" target="_blank">On Windows, Amazon recommends using PuTTY</a>.
 Please follow their instructions when it pertains to connecting to your instance below.
 
+Make sure you genereate your private KEY using Pputtygen, follow instructions here: https://www.youtube.com/watch?v=mJaHARCfcA0
+
 ## 1. Terminal
  
 Start at a terminal on your laptop, then get closer to that pem file we downloaded earlier:
