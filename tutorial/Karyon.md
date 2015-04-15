@@ -28,12 +28,12 @@ Make sure to use that DNS name below instead of just copying like you have in pr
 
 ## IF the build fails
 
-$ cd zerotocloud
-$ vim karyon/build/karyon-git/karyon2-examples/src/main/java/netflix/karyon/examples/hellonoss/server/jersey/JerseyHelloWorldApp.java
-add the following import: import netflix.karyon.eureka.KaryonEurekaModule;
-save the file
-run again
-$ KARYON_OPTS="-Deureka.serviceUrl.default=http://$EUREKA_ELB/v2/" ./gradlew :karyon:buildDeb
+$ cd zerotocloud <BR>
+$ vim karyon/build/karyon-git/karyon2-examples/src/main/java/netflix/karyon/examples/hellonoss/server/jersey/JerseyHelloWorldApp.java <BR>
+add the following import: import netflix.karyon.eureka.KaryonEurekaModule; <BR>
+save the file <BR>
+run again <BR>
+$ KARYON_OPTS="-Deureka.serviceUrl.default=http://$EUREKA_ELB/v2/" ./gradlew :karyon:buildDeb <BR>
 
 ## Deploy
 
