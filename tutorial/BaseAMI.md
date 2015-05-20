@@ -11,6 +11,38 @@ It can use system packages, like RPMs or DEBs, or via a system of plugins common
 It also supports various base environments. We'll be using Ubuntu but other RPM based OS's like CentOS are supported.
 
     sudo pip install git+https://github.com/Netflix/aminator.git@2.1.52-dev#egg=aminator
+
+## IF You got a python error:  <BR>
+
+ERROR:root:Error parsing  <BR>
+Traceback (most recent call last):  <BR>
+  File "/usr/local/lib/python2.7/dist-packages/pbr/core.py", line 109, in pbr  <BR>
+    attrs = util.cfg_to_args(path)  <BR>
+  File "/usr/local/lib/python2.7/dist-packages/pbr/util.py", line 243, in cfg_to_args  <BR>
+    pbr.hooks.setup_hook(config)  <BR>
+  File "/usr/local/lib/python2.7/dist-packages/pbr/hooks/__init__.py", line 25, in setup_hook  <BR>
+    metadata_config.run()  <BR>
+  File "/usr/local/lib/python2.7/dist-packages/pbr/hooks/base.py", line 27, in run  <BR>
+    self.hook()  <BR>
+  File "/usr/local/lib/python2.7/dist-packages/pbr/hooks/metadata.py", line 26, in hook  <BR>
+    self.config['name'], self.config.get('version', None))  <BR>
+  File "/usr/local/lib/python2.7/dist-packages/pbr/packaging.py", line 573, in get_version  <BR>
+    version = _get_version_from_git(pre_version)  <BR>
+  File "/usr/local/lib/python2.7/dist-packages/pbr/packaging.py", line 511, in _get_version_from_git  <BR>
+    pre_version)  <BR>
+  File "/usr/local/lib/python2.7/dist-packages/pbr/version.py", line 147, in from_pip_string  <BR>
+    raise ValueError("Invalid version %r" % version_string)  <BR>
+    
+* Them you will need edit this file(setup.cfg):  <BR>
+ $ git clone https://github.com/Netflix/aminator <BR> 
+ $ cd aminator  <BR>
+ $ sudo pip install -r requirements.txt
+ $ cd /home/ubuntu/aminator <BR>
+ $ vim setup.cfg <BR>
+ <BR>
+Search for the version and replace for: version = 2.1.65 IF you want use the latest release got here  <BR> https://github.com/Netflix/aminator/releases and check the latest number.   <BR>
+ <BR>
+$ sudo python setup.py install
     
 # Build a Debian
 
